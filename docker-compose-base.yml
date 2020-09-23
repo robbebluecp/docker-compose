@@ -1,0 +1,100 @@
+version: '3.1'
+services:
+  # start mysql
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    restart: always
+    ports:
+      - %(port)s:%(port)s
+    environment:
+      MYSQL_ROOT_PASSWORD: %(password)s
+    volumes:
+      - %(data_path)s:/var/lib/mysql
+      - /etc/localtime:/etc/localtime
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+  # end mysql
+
+  # start mongo
+  mongo:
+    image: mongo
+    container_name: mongo
+    volumes:
+      - %(data_path)s:/data/db
+      - %(conf_path)s:/etc/mongo/mongo.conf
+      - %(daemon_path)s:/etc/docker/daemon.json
+      - %(log_path)s:/var/log/mongodb/
+      - /etc/localtime:/etc/localtime
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: %(user)s
+      MONGO_INITDB_ROOT_PASSWORD: %(password)s
+      MONGO_INITDB_DATABASE: admin
+    ports:
+      - "%(port)s:%(port)s"
+  # end mongo
+
+  # start redis
+  redis:
+    container_name: redis
+    image: redis
+    restart: always
+    ports:
+      - %(port)s:%(port)s
+    volumes:
+      - %(conf_path)s:/etc/redis/redis.conf
+      - %(data_path)s:/data
+      - /etc/localtime:/etc/localtime
+    command:
+      redis-server /etc/redis/redis.conf --appendonly yes
+  # end redis
+
+  # start nginx
+  nginx:
+    container_name: nginx
+    image: nginx:1.19.0
+    restart: always
+    ports:
+      - %(port1)s:%(port1)s
+      - %(port2)s:%(port2)s
+    volumes:
+      - %(html_path)s:/usr/share/nginx/html
+      - %(log_path)s:/var/log/nginx
+      - %(conf_path)s:/etc/nginx/nginx.conf
+      - %(cert_path)s:/etc/nginx/cert
+      - /etc/localtime:/etc/localtime
+  # end nginx
+
+  # start rabbitmq
+  rabbitmq:
+    container_name: rabbitmq
+    image: "rabbitmq:management"
+    restart: always
+    ports:
+       - %(port1)s:%(port1)s
+       - %(port2)s:%(port2)s
+       - %(port3)s:%(port3)s
+       - %(port4)s:%(port4)s
+    environment:
+       RABBITMQ_DEFAULT_USER: "%(user)s"
+       RABBITMQ_DEFAULT_PASS: "%(password)s"
+    volumes:
+       - "%(data_path)s:/var/lib/rabbitmq"
+  # end rabbitmq
+
+  # start lovinblue
+  lovinblue:
+    container_name: lovinblue
+    image: "registry.cn-zhangjiakou.aliyuncs.com/robbe/lovinblue-web1"
+    restart: always
+    ports:
+      - %(port)s:%(port)s
+    volumes:
+      - /etc/localtime:/etc/localtime
+    command:
+      gunicorn -k gevent -c config.py server:app
+  # end lovinblue

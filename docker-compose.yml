@@ -1,0 +1,64 @@
+version: '3.1'
+services:
+  redis:
+    container_name: redis
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - /data/redis/config/redis.conf:/etc/redis/redis.conf
+      - /data/redis/data:/data
+      - /etc/localtime:/etc/localtime
+    command:
+      redis-server /etc/redis/redis.conf --appendonly yes
+  
+  rabbitmq:
+    container_name: rabbitmq
+    image: "rabbitmq:management"
+    restart: always
+    ports:
+       - 15672:15672
+       - 4369:4369
+       - 5672:5672
+       - 25672:25672
+    environment:
+       RABBITMQ_DEFAULT_USER: "root"
+       RABBITMQ_DEFAULT_PASS: "321"
+    volumes:
+       - "/data/rabbitmq/data:/var/lib/rabbitmq"
+  
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 321
+    volumes:
+      - /data/mysql/data:/var/lib/mysql
+      - /etc/localtime:/etc/localtime
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+  
+  mongo:
+    image: mongo
+    container_name: mongo
+    volumes:
+      - /data/mongo/data/db:/data/db
+      - /data/mongo/config:/etc/mongo/mongo.conf
+      - /data/mongo/config/daemon.json:/etc/docker/daemon.json
+      - /data/mongo/logs:/var/log/mongodb/
+      - /etc/localtime:/etc/localtime
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 321
+      MONGO_INITDB_DATABASE: admin
+    ports:
+      - "27017:27017"
+  
